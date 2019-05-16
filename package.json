@@ -1,0 +1,23 @@
+{
+  "name": "download-repo-dir",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imtaotao/download-repo-dir.git"
+  },
+  "author": "chentao",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/imtaotao/download-repo-dir/issues"
+  },
+  "homepage": "https://github.com/imtaotao/download-repo-dir#readme",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "download": "^7.1.0"
+  }
+}
