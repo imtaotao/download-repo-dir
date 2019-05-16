@@ -18,6 +18,7 @@
   "homepage": "https://github.com/imtaotao/download-repo-dir#readme",
   "dependencies": {
     "axios": "^0.18.0",
-    "download": "^7.1.0"
+    "download": "^7.1.0",
+    "rimraf": "^2.6.3"
   }
 }

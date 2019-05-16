@@ -1,47 +1,61 @@
-const axios = require('axios')
+const fs = require('fs')
 const _ = require('./utils')
+const path = require('path')
+const rm = require('rimraf').sync
+const download = require('download')
 
 // https://github.com/imtaotao/Grass/file-list/master/src
 // https://raw.githubusercontent.com/imtaotao/Grass/master/index.js
 
 class DownLoad {
-  constructor (repo, branch = 'master') {
+  constructor (repo, airmUrl, branch = 'master') {
     if (!repo) throw new Error('error')
+    if (!airmUrl) throw new Error('error')
     if (!branch) throw new Error('error')
-    this.config = _.separateUrl(repo, branch)
+    this.config = _.separateUrl(repo, airmUrl, branch)
   }
 
-  _dealWithDir (text) {
-    const list = _.getDirItems(text)
-    if (list.length > 0) {
-      console.log(list);
-    }
+  start (url) {
+    this._download(url)
   }
 
-  async downFile (url) {
-    if (!url) return false
+  async _downFile (requestPath, destination) {
+    if (!requestPath || !destination) return false
+
+    // 生成 request url 和 destination url
+    requestPath = this.config.file(requestPath)
+    destination = this.config.dest(destination)
+
+    download(requestPath).pipe(
+      fs.createWriteStream(destination)
+    )
+  }
+
+  async _download (requstPath, preDestinationPath = '') {
+    if (!requstPath) return
+
+    const url = this.config.dir(requstPath)
+    const mkdirPath = this.config.dest(preDestinationPath)
+    const list = await _.getDirItems(url)
+
+    _.mkdir(mkdirPath)
     
-  }
+    list.forEach(item => {
+      // 创建当前路径的 url
+      const currentFilePath = path.posix.join(requstPath, item.name)
+      const destinationPath = path.posix.join(preDestinationPath, item.name)
 
-  async downDir (url) {
-    if (!url) return false
-    url = this.config.dir(url)
-
-    try {
-      const res = await axios.get(url)
-      const text = res && res.data
-
-      if (typeof text === 'string') {
-        this._dealWithDir(text)
+      if (item.isDir) {
+        this._download(currentFilePath, destinationPath)
+      } else {
+        this._downFile(currentFilePath, destinationPath)
       }
-    } catch (err) {
-      console.error(err)
-      return false
-    }
+    })
   }
 }
 
-function create (repo, branch) {
-  return new DownLoad(repo, branch)
+function create (repo, airmUrl, branch) {
+  return new DownLoad(repo, airmUrl, branch)
 }
-create('https://github.com/imtaotao/Grass.git').downDir('src')
+
+create('https://github.com/axios/axios.git', './dist').start('examples')
