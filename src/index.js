@@ -19,16 +19,27 @@ class DownLoad {
     this._download(url)
   }
 
+  remove (url) {
+    rm(url || this.config.airmUrl)
+  }
+
   async _downFile (requestPath, destination) {
-    if (!requestPath || !destination) return false
+    return new Promise((resolve, reject) => {
+      // 生成 request url 和 destination url
+      requestPath = this.config.file(requestPath)
+      destination = this.config.dest(destination)
 
-    // 生成 request url 和 destination url
-    requestPath = this.config.file(requestPath)
-    destination = this.config.dest(destination)
+      const writer = fs.createWriteStream(destination)
+      download(requestPath).pipe(writer)
 
-    download(requestPath).pipe(
-      fs.createWriteStream(destination)
-    )
+      writer.on('error', err => {
+        reject(`[error]：${destination} -- ${err}`)
+      })
+
+      writer.on('finish', () => {
+        resolve(`[succuess]：${destination}`)
+      })
+    })
   }
 
   async _download (requstPath, preDestinationPath = '') {
@@ -45,10 +56,12 @@ class DownLoad {
       const currentFilePath = path.posix.join(requstPath, item.name)
       const destinationPath = path.posix.join(preDestinationPath, item.name)
 
+      const resFn = msg => console.log(msg)
+
       if (item.isDir) {
         this._download(currentFilePath, destinationPath)
       } else {
-        this._downFile(currentFilePath, destinationPath)
+        this._downFile(currentFilePath, destinationPath).then(resFn, resFn)
       }
     })
   }
@@ -58,4 +71,7 @@ function create (repo, airmUrl, branch) {
   return new DownLoad(repo, airmUrl, branch)
 }
 
-create('https://github.com/axios/axios.git', './dist').start('examples')
+const d = create('https://github.com/axios/axios.git', './dist')
+
+d.remove()
+d.start('examples')
