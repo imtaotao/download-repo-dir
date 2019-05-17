@@ -3,8 +3,8 @@ const url = require('url')
 const path = require('path')
 const axios = require('axios')
 
-const dirExpand = 'file-list'
-const fileHost = 'raw.githubusercontent.com'
+const DIREXPAND = 'file-list'
+const FILEHOST = 'raw.githubusercontent.com'
 
 exports.separateUrl = function (repo, airmUrl, branch) {
   const config = url.parse(repo)
@@ -26,13 +26,13 @@ exports.separateUrl = function (repo, airmUrl, branch) {
     return url.format({
       host: config.host,
       protocol: config.protocol,
-      pathname: path.posix.join(config.path, dirExpand, branch, s),
+      pathname: path.posix.join(config.path, DIREXPAND, branch, s),
     })
   }
   
   const file = s => {
     return url.format({
-      host: fileHost,
+      host: FILEHOST,
       protocol: config.protocol,
       pathname: path.posix.join(config.path, branch, s),
     })
@@ -66,8 +66,8 @@ exports.getDirItems = async function (url) {
     return typeof text === 'string'
       ? exports.parseHtml(text)
       : []
-  } catch (err) {
-    console.error('err')
+  } catch ({ port, errno }) {
+    console.error(`[error]：${url} -> ${port}`)
     return []
   }
 }

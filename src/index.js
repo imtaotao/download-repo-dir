@@ -23,6 +23,11 @@ class DownLoad {
     rm(url || this.config.airmUrl)
   }
 
+  // 下载进度条
+  progress () {
+
+  }
+
   async _downFile (requestPath, destination) {
     return new Promise((resolve, reject) => {
       // 生成 request url 和 destination url
