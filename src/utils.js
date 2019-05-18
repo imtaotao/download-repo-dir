@@ -6,6 +6,7 @@ const axios = require('axios')
 const dirExpand = 'file-list'
 const fileHost = 'raw.githubusercontent.com'
 
+// 路径相关的信息
 exports.separateUrl = function (repo, airmUrl, branch) {
   const config = url.parse(repo)
   const exname = path.extname(config.path)
@@ -58,18 +59,39 @@ exports.parseHtml = function (text) {
   return files
 }
 
+// 获得一个文件夹中的所有文件
 exports.getDirItems = async function (url) {
   try {
+    console.log(url);
     const res = await axios.get(url)
     const text = res && res.data
 
     return typeof text === 'string'
       ? exports.parseHtml(text)
       : []
-  } catch (err) {
-    console.error('err')
+  } catch (error) {
+    console.error('error')
     return []
   }
+}
+
+// 获取整个文件的大小
+exports.totalSize = async function (files) {
+  let totalSize = 0
+
+  const getFileSize = async filePath => {
+    const data = await axios.head(filePath)
+    if (data && data.headers) {
+      const size = Number(data.headers['content-length'])
+      if (!isNaN(size)) {
+        totalSize += size
+      }
+    }
+  }
+
+  return Promise.all(
+    files.map(item => getFileSize(item.request))
+  ).then(() => totalSize)
 }
 
 // 创建文件夹
@@ -84,4 +106,26 @@ exports.mkdir = function (dirPath) {
   } else {
     fs.mkdirSync(dirPath)
   }
+}
+
+// 超过 10min 直接退出进程
+exports.timeout = function (msg) {
+  msg = msg || 'Checkout you network...'
+  let t = setTimeout(() => {
+    console.error(msg)
+    process.exit(1)
+  }, 1000 * 60 * 10)
+
+  return () => {
+    clearTimeout(t)
+    t = null
+  }
+}
+
+exports.extend = function (from, to) {
+  const keys = Object.keys(from)
+  for (const key of keys) {
+    to[key] = from[key]
+  }
+  return to
 }
