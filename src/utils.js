@@ -9,6 +9,41 @@ const DIREXPAND = 'file-list'
 const FILEHOST = 'raw.githubusercontent.com'
 const HREFREG = /(?<=(href=")).+(tree|blob).+"/g
 
+function getSimplifiedPath (nodes) {
+  for (const item of nodes) {
+    if (item.rawAttrs && item.rawAttrs.includes('simplified-path')) {
+      const textNode = item.childNodes[0]
+      return textNode && textNode.nodeType === 3
+        ? textNode.rawText
+        : ''
+    }
+  }
+  return ''
+}
+
+function parseHtml (text, branch) {
+  const files = []
+
+  const root = parse(text)
+  const tags = root.querySelectorAll('.js-navigation-open') || []
+  for (const item of tags) {
+    // 排除返回上一级的按钮
+    if (item.rawAttrs && !item.rawAttrs.includes('rel="nofollow"')) {
+      const result = item.rawAttrs.match(HREFREG)
+      if (result && result[0]) {
+        const simplifiedPath = getSimplifiedPath(item.childNodes)
+        const basePath = path.basename(result[0]).replace('"', '')
+
+        files.push({
+          isDir: result[0].includes(`/tree/${branch}/`),
+          name: path.posix.join(simplifiedPath, basePath),
+        })
+      }
+    }
+  }
+  return files
+}
+
 // 路径相关的信息
 exports.separateUrl = function (repo, airmUrl, branch) {
   const config = url.parse(repo)
@@ -45,26 +80,6 @@ exports.separateUrl = function (repo, airmUrl, branch) {
   return { dir, file, dest, airmUrl, branch }
 }
 
-exports.parseHtml = function (text, branch) {
-  const files = []
-
-  const root = parse(text)
-  const tags = root.querySelectorAll('.js-navigation-open') || []
-  for (const item of tags) {
-    // 排除返回上一级的按钮
-    if (item.rawAttrs && !item.rawAttrs.includes('rel="nofollow"')) {
-      const result = item.rawAttrs.match(HREFREG)
-      if (result && result[0]) {
-        files.push({
-          isDir: result[0].includes(`/tree/${branch}/`),
-          name: path.basename(result[0]).replace('"', ''),
-        })
-      }
-    }
-  }
-  return files
-}
-
 // 获得一个文件夹中的所有文件
 exports.getDirItems = async function (url, branch) {
   console.log(`🕗  ${chalk.cyan('Get folder information: ')}`, chalk.greenBright(url))
@@ -74,12 +89,11 @@ exports.getDirItems = async function (url, branch) {
     const text = res && res.data
 
     return typeof text === 'string'
-      ? exports.parseHtml(text, branch)
+      ? parseHtml(text, branch)
       : []
   } catch (error) {
-    console.error(chalk.red(error))
+    console.error(`\n${chalk.red(error)}\n`)
     process.exit(1)
-    return []
   }
 }
 
@@ -88,18 +102,22 @@ exports.totalSize = async function (files) {
   let totalSize = 0
 
   const getFileSize = async filePath => {
-    const data = await axios.head(filePath)
-    if (data && data.headers) {
-      const size = Number(data.headers['content-length'])
-      if (!isNaN(size)) {
-        totalSize += size
+    try {
+      const data = await axios.head(filePath)
+      if (data && data.headers) {
+        const size = Number(data.headers['content-length'])
+        if (!isNaN(size)) {
+          totalSize += size
+        }
       }
+    } catch (error) {
+      console.error(`\n${chalk.red(error)}\n`)
+      process.exit(1)
     }
   }
 
-  return Promise.all(
-    files.map(item => getFileSize(item.request))
-  ).then(() => totalSize)
+  await Promise.all(files.map(item => getFileSize(item.request)))
+  return totalSize
 }
 
 // 创建文件夹
@@ -121,7 +139,7 @@ exports.timeout = function (msg) {
    
   msg = msg || '❌  network timeout...'
   let t = setTimeout(() => {
-    console.error(chalk.red(msg))
+    console.error(`${chalk.red(msg)}\n`)
     process.exit(1)
   }, 1000 * 60 * 10)
 

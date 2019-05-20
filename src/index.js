@@ -4,15 +4,23 @@ const path = require('path')
 const chalk = require('chalk')
 const rm = require('rimraf').sync
 const download = require('download')
-
-// https://github.com/imtaotao/Grass/file-list/master/src
-// https://raw.githubusercontent.com/imtaotao/Grass/master/index.js
+const ProgressBar = require('progress')
 
 const hooks = {
-  progress (percent, {arrived, total}) {
-    this.needSize
-      ? console.log('percent: ', percent)
-      : console.log('percent: ', percent, `${arrived}/${total}`)
+  progress (percent, tick, requestPath) {
+    if (!this.progressBar) {
+      this.progressBar = new ProgressBar('✨  [:bar] :percent :token1', {
+        width: 20,
+        clear: true,
+        complete: '█',
+        incomplete: '░',
+        total: this.size.total,
+      })
+    }
+
+    this.progressBar.tick(tick, {
+      token1: chalk.greenBright(requestPath),
+    })
   },
   ready () {
     console.log(chalk.yellow('☕  Ready...'))
@@ -24,16 +32,17 @@ const hooks = {
     console.log(chalk.yellow('📦  Get package size...'))
   },
   complete () {
-    console.log(chalk.green('🎉  Complete'))
+    console.clear()
+    console.log(chalk.green('🎉  Complete!\n'))
   }
 }
 
-class DownLoad {
+class DownLoadCore {
   constructor (repo, airmUrl, branch = 'master') {
-    if (!repo) throw new Error('error')
-    if (!airmUrl) throw new Error('error')
-    if (!branch) throw new Error('error')
-
+    if (!repo || !airmUrl || !branch) {
+      console.error(chalk.red('Lack of necessary parameters'))
+      process.exit(1)
+    }
     this.size = {
       total: 0,
       arrived: 0,
@@ -44,7 +53,8 @@ class DownLoad {
   }
 
   remove (url) {
-    rm(url || this.config.airmUrl)
+    url = url || this.config.airmUrl
+    if (fs.existsSync(url)) rm(url)
     return this
   }
 
@@ -109,6 +119,7 @@ class DownLoad {
       const destinationPath = path.posix.join(preDestinationPath, item.name)
 
       if (item.isDir) {
+        // 这个递归，如果文件嵌套过深可能导致栈爆了，后面需要优化
         await this._getFilesInfo(currentFilePath, destinationPath, map)
       } else {
         map.files.push({
@@ -125,7 +136,7 @@ class DownLoad {
     return new Promise((resolve, reject) => {
       const writer = fs.createWriteStream(destination)
       const reader = download(requestPath)
-      const errFn = err => {
+      const errFn = error => {
         console.error(`${chalk.yellow(error)}: ${chalk.redBright(destination)} ${chalk.cyan('--->')} ${chalk.red(err)}`)
         process.exit(1)
       }
@@ -134,12 +145,11 @@ class DownLoad {
 
       reader.on('error', errFn)
       writer.on('error', errFn)
-
       reader.on('data', chunk => {
         if (this.needSize) {
           this.size.arrived += chunk.length
           const percent = this.size.arrived / this.size.total
-          this._callHook('progress', percent.toFixed(3), this.size)
+          this._callHook('progress', percent.toFixed(3), chunk.length, requestPath)
         }
       })
 
@@ -148,7 +158,7 @@ class DownLoad {
           // 以下载的文件为百分比计算
           this.size.arrived++
           const percent = this.size.arrived / this.size.total
-          this._callHook('progress', percent.toFixed(3), this.size)
+          this._callHook('progress', percent.toFixed(3), 1, requestPath)
         }
         resolve(`[succuess]: ${destination}`)
       })
@@ -156,12 +166,12 @@ class DownLoad {
   }
 }
 
-function create (repo, airmUrl, branch) {
-  return new DownLoad(repo, airmUrl, branch)
+module.exports = function (repo, airmUrl, branch) {
+  return new DownLoadCore(repo, airmUrl, branch)
 }
 
-create('https://github.com/PanJiaChen/vue-element-admin.git', './dist')
+module.exports('https://github.com/yehuali/concurrency.git', './dist')
 .remove()
-.download('mock').then(() => {
+.download('src').then(() => {
   console.log('完成')
 })

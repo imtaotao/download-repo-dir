@@ -21,6 +21,7 @@
     "chalk": "^2.4.2",
     "download": "^7.1.0",
     "node-html-parser": "^1.1.15",
+    "progress": "^2.0.3",
     "rimraf": "^2.6.3"
   }
 }
