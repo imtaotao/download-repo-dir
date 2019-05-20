@@ -9,7 +9,7 @@ const ProgressBar = require('progress')
 const hooks = {
   progress (percent, tick, requestPath) {
     if (!this.progressBar) {
-      this.progressBar = new ProgressBar('✨  [:bar] :percent :token1', {
+      this.progressBar = new ProgressBar('✨ [:bar] :percent :token1', {
         width: 20,
         clear: true,
         complete: '█',
@@ -23,17 +23,17 @@ const hooks = {
     })
   },
   ready () {
-    console.log(chalk.yellow('☕  Ready...'))
+    console.log(chalk.yellow('☕ Ready...'))
   },
   start () {
-    console.log(chalk.yellow('🚀  Download...'))
+    console.log(chalk.yellow('🚀 Download...'))
   },
   packageInfo () {
-    console.log(chalk.yellow('📦  Get package size...'))
+    console.log(chalk.yellow('📦 Get package size...'))
   },
   complete () {
     console.clear()
-    console.log(chalk.green('🎉  Complete!\n'))
+    console.log(chalk.green('🎉 Complete!\n'))
   }
 }
 
@@ -84,7 +84,9 @@ class DownLoadCore {
     this._callHook('start')
     // 创建本地文件夹
     fileList.dirs.forEach(dirPath => _.mkdir(dirPath))
-    const asyncArray = fileList.files.map(({request, dest}) => this._downFile(request, dest))
+    const asyncArray = fileList.files.map(({request, dest}) => {
+      this._downFile(request, dest)
+    })
 
     return Promise.all(asyncArray).then(() => {
       remove()
@@ -169,9 +171,3 @@ class DownLoadCore {
 module.exports = function (repo, airmUrl, branch) {
   return new DownLoadCore(repo, airmUrl, branch)
 }
-
-module.exports('https://github.com/yehuali/concurrency.git', './dist')
-.remove()
-.download('src').then(() => {
-  console.log('完成')
-})

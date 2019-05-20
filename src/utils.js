@@ -44,6 +44,26 @@ function parseHtml (text, branch) {
   return files
 }
 
+// 创建文件夹
+exports.mkdir = function (dirPath) {
+  // 递归创建文件夹
+  const prevDirPath = path.dirname(dirPath)
+  if (!fs.existsSync(prevDirPath)) {
+    exports.mkdir(prevDirPath)
+  }
+
+  if (fs.existsSync(dirPath)) {
+    const stat = fs.statSync(dirPath)
+    // 如果当前文件路径已经存在，但是不是文件夹，就重命名为 .bak 结尾的文件
+    if (stat && !stat.isDirectory()) {
+      fs.renameSync(dirPath, dirPath + '.back')
+      fs.mkdirSync(dirPath)
+    }
+  } else {
+    fs.mkdirSync(dirPath)
+  }
+}
+
 // 路径相关的信息
 exports.separateUrl = function (repo, airmUrl, branch) {
   const config = url.parse(repo)
@@ -120,23 +140,8 @@ exports.totalSize = async function (files) {
   return totalSize
 }
 
-// 创建文件夹
-exports.mkdir = function (dirPath) {
-  if (fs.existsSync(dirPath)) {
-    const stat = fs.statSync(dirPath)
-    // 如果当前文件路径已经存在，但是不是文件夹，就重命名为 .bak 结尾的文件
-    if (stat && !stat.isDirectory()) {
-      fs.renameSync(dirPath, dirPath + '.back')
-      fs.mkdirSync(dirPath)
-    }
-  } else {
-    fs.mkdirSync(dirPath)
-  }
-}
-
 // 超过 10min 直接退出进程
 exports.timeout = function (msg) {
-   
   msg = msg || '❌  network timeout...'
   let t = setTimeout(() => {
     console.error(`${chalk.red(msg)}\n`)

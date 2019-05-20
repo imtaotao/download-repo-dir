@@ -1,8 +1,8 @@
 {
-  "name": "download-repo-dir",
+  "name": "get-repo-dir",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A github repository folder download package",
+  "main": "src/index.js",
   "scripts": {
     "dev": "node src/index.js"
   },
@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/imtaotao/download-repo-dir.git"
   },
-  "author": "chentao",
+  "author": "imtaotao",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/imtaotao/download-repo-dir/issues"
