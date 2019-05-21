@@ -10,7 +10,7 @@ class DownLoadCore {
   constructor (options) {
     const { repo, destPath, branch, dirPath, hooks } = options
     if (!repo || !dirPath || !destPath || !branch) {
-      hooks.error(chalk.red('Lack of necessary parameters...'))
+      defaultHooks.error(chalk.red('Lack of necessary parameters...'))
       return
     }
 
