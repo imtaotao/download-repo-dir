@@ -2,75 +2,53 @@ const fs = require('fs')
 const _ = require('./utils')
 const path = require('path')
 const chalk = require('chalk')
+const hooks = require('./hooks')
 const rm = require('rimraf').sync
 const download = require('download')
-const ProgressBar = require('progress')
-
-const hooks = {
-  progress (percent, tick, requestPath) {
-    if (!this.progressBar) {
-      this.progressBar = new ProgressBar('✨ [:bar] :percent :token1', {
-        width: 20,
-        clear: true,
-        complete: '█',
-        incomplete: '░',
-        total: this.size.total,
-      })
-    }
-
-    this.progressBar.tick(tick, {
-      token1: chalk.greenBright(requestPath),
-    })
-  },
-  ready () {
-    console.log(chalk.yellow('☕ Ready...'))
-  },
-  start () {
-    console.log(chalk.yellow('🚀 Download...'))
-  },
-  packageInfo () {
-    console.log(chalk.yellow('📦 Get package size...'))
-  },
-  complete () {
-    console.clear()
-    console.log(chalk.green('🎉 Complete!\n'))
-  }
-}
 
 class DownLoadCore {
-  constructor (repo, airmUrl, branch = 'master') {
-    if (!repo || !airmUrl || !branch) {
-      console.error(chalk.red('Lack of necessary parameters'))
-      process.exit(1)
+  constructor (options) {
+    const { repo, destUrl, branch, dirPath } = options
+    if (!repo || !dirPath || !destUrl || !branch) {
+      hooks.error(chalk.red('Lack of necessary parameters...'))
+      return
     }
-    this.size = {
-      total: 0,
-      arrived: 0,
-    }
-    this.needSize = false
-    this.config = _.separateUrl(repo, airmUrl, branch)
+
+    this._isDownloading = false
+    this.needSize = options.needSize
+    this.timeout = options.needSize.timeout
+    this.size = { total: 0, arrived: 0 }
+    this.config = _.separateUrl(options)
     _.extend(hooks, this)
   }
 
   remove (url) {
-    url = url || this.config.airmUrl
+    url = url || this.config.destUrl
     if (fs.existsSync(url)) rm(url)
     return this
   }
 
-  async download (url) {
-    let remove = _.timeout()
+  async download () {
+    if (this._isDownloading) {
+      return Promise.reject(chalk.red('Currently downloading...'))
+    }
+    
+    this._isDownloading = true
+    const errorCb = error => this._callHook('error', error)
+    const timeoutTime = typeof this.timeout === 'number'
+      ? this.timeout
+      : 10 * 60
+
+    let remove = _.timeout(timeoutTime, errorCb)
 
     this._callHook('ready')
-    const fileList = await this._getFilesInfo(url)
+    const fileList = await this._getFilesInfo(this.config.dirPath)
 
     if (this.needSize) {
-      this._callHook('packageInfo')
-      const size = await _.totalSize(fileList.files)
-      this.size = {
-        arrived: 0,
-        total: size,
-      }
+      this._callHook('packageInfoStart')
+      const total = await _.totalSize(fileList.files, totalSize => this._callHook('packageInfoProcess', totalSize), errorCb)
+      this.size = { total, arrived: 0 }
+      this._callHook('packageInfoEnd')
     } else {
       this.size = {
         arrived: 0,
@@ -79,19 +57,25 @@ class DownLoadCore {
     }
     
     remove()
-    remove = _.timeout()
+    remove = _.timeout(timeoutTime, errorCb)
 
     this._callHook('start')
     // 创建本地文件夹
     fileList.dirs.forEach(dirPath => _.mkdir(dirPath))
     const asyncArray = fileList.files.map(({request, dest}) => {
-      this._downFile(request, dest)
+      return this._downFile(request, dest)
     })
 
     return Promise.all(asyncArray).then(() => {
       remove()
+      this._resetFlagAttrs()
       this._callHook('complete')
     })
+  }
+
+  _resetFlagAttrs () {
+    this._isDownloading = false
+    this.size = { total: 0, arrived: 0 }
   }
 
   _callHook (name, ...args) {
@@ -101,18 +85,17 @@ class DownLoadCore {
     }
   }
 
+  // 获取所有的文件路径
   async _getFilesInfo (requstPath, preDestinationPath = '', map) {
-    if (!map) {
-      map = {
-        dirs: [],
-        files: [],
-      }
-    }
+    if (!map) map = { dirs: [], files: [] }
     if (!requstPath) return map
 
+    const dirAsyncArr = []
     const url = this.config.dir(requstPath)
     const mkdirPath = this.config.dest(preDestinationPath)
-    const list = await _.getDirItems(url, this.config.branch)
+    const list = await _.getDirItems(url, this.config.branch, error => {
+      this._callHook('error', error)
+    })
 
     map.dirs.push(mkdirPath)
 
@@ -121,8 +104,8 @@ class DownLoadCore {
       const destinationPath = path.posix.join(preDestinationPath, item.name)
 
       if (item.isDir) {
-        // 这个递归，如果文件嵌套过深可能导致栈爆了，后面需要优化
-        await this._getFilesInfo(currentFilePath, destinationPath, map)
+        const pedding = this._getFilesInfo(currentFilePath, destinationPath, map)
+        dirAsyncArr.push(pedding)
       } else {
         map.files.push({
           dest: this.config.dest(destinationPath),
@@ -131,16 +114,17 @@ class DownLoadCore {
       }
     }
 
-    return map
+    return Promise.all(dirAsyncArr).then(() => map, () => process.exit(1))
   }
 
+  // 下载文件
   async _downFile (requestPath, destination) {
     return new Promise((resolve, reject) => {
       const writer = fs.createWriteStream(destination)
       const reader = download(requestPath)
       const errFn = error => {
-        console.error(`${chalk.yellow(error)}: ${chalk.redBright(destination)} ${chalk.cyan('--->')} ${chalk.red(err)}`)
-        process.exit(1)
+        this._callHook('error', `\n${chalk.yellow('error')}: ${chalk.red(error)} ${chalk.cyan('--->')} ${chalk.redBright(requestPath)}\n`)
+        reject()
       }
 
       reader.pipe(writer)
@@ -168,6 +152,12 @@ class DownLoadCore {
   }
 }
 
-module.exports = function (repo, airmUrl, branch) {
-  return new DownLoadCore(repo, airmUrl, branch)
+module.exports = function (options) {
+  options.branch = options.branch || 'master'
+  options.needSize = options.needSize || false
+  options.timeout = typeof options.timeout === 'number'
+    ? options.timeout
+    : 10 * 60
+
+  return new DownLoadCore(options)
 }

@@ -65,43 +65,43 @@ exports.mkdir = function (dirPath) {
 }
 
 // 路径相关的信息
-exports.separateUrl = function (repo, airmUrl, branch) {
+exports.separateUrl = function ({repo, destUrl, branch, dirPath}) {
   const config = url.parse(repo)
   const exname = path.extname(config.path)
 
   config.path = config.path.replace(exname, '')
   config.href = config.href.replace(exname, '')
 
-  if (!path.isAbsolute(airmUrl)) {
+  if (!path.isAbsolute(destUrl)) {
     const cwd = process.cwd()
-    airmUrl = path.resolve(cwd, airmUrl)
+    destUrl = path.resolve(cwd, destUrl)
   }
 
-  const dest = s => {
-    return path.join(airmUrl, s)
+  const dest = v => {
+    return path.join(destUrl, v)
   }
 
-  const dir = s => {
+  const dir = v => {
     return url.format({
       host: config.host,
       protocol: config.protocol,
-      pathname: path.posix.join(config.path, DIREXPAND, branch, s),
+      pathname: path.posix.join(config.path, DIREXPAND, branch, v),
     })
   }
   
-  const file = s => {
+  const file = v => {
     return url.format({
       host: FILEHOST,
       protocol: config.protocol,
-      pathname: path.posix.join(config.path, branch, s),
+      pathname: path.posix.join(config.path, branch, v),
     })
   }
 
-  return { dir, file, dest, airmUrl, branch }
+  return { dir, file, dest, dirPath, destUrl, branch }
 }
 
 // 获得一个文件夹中的所有文件
-exports.getDirItems = async function (url, branch) {
+exports.getDirItems = async function (url, branch, errorCb) {
   console.log(`🕗  ${chalk.cyan('Get folder information: ')}`, chalk.greenBright(url))
 
   try {
@@ -112,13 +112,13 @@ exports.getDirItems = async function (url, branch) {
       ? parseHtml(text, branch)
       : []
   } catch (error) {
-    console.error(`\n${chalk.red(error)}\n`)
+    errorCb(`\n${chalk.red(error)} ${chalk.cyan('--->')} ${chalk.redBright(url)}\n`)
     process.exit(1)
   }
 }
 
 // 获取整个文件的大小
-exports.totalSize = async function (files) {
+exports.totalSize = async function (files, fn, errorCb) {
   let totalSize = 0
 
   const getFileSize = async filePath => {
@@ -128,10 +128,11 @@ exports.totalSize = async function (files) {
         const size = Number(data.headers['content-length'])
         if (!isNaN(size)) {
           totalSize += size
+          fn(totalSize)
         }
       }
     } catch (error) {
-      console.error(`\n${chalk.red(error)}\n`)
+      errorCb(`\n${chalk.red(error)} ${chalk.cyan('--->')} ${chalk.redBright(filePath)}\n`)
       process.exit(1)
     }
   }
@@ -140,13 +141,20 @@ exports.totalSize = async function (files) {
   return totalSize
 }
 
-// 超过 10min 直接退出进程
-exports.timeout = function (msg) {
-  msg = msg || '❌  network timeout...'
+
+exports.formatSize = function (size) {
+  const kb = parseInt(size / 1024)
+  return kb > 1024
+      ? `${(kb / 1024).toFixed(2)}M`
+      : `${kb}KB`
+}
+
+// 超过指定时间直接退出进程，默认为 10min
+exports.timeout = function (timeoutTime, errorCb) {
   let t = setTimeout(() => {
-    console.error(`${chalk.red(msg)}\n`)
+    errorCb(`${chalk.red('network timeout...')}\n`)
     process.exit(1)
-  }, 1000 * 60 * 10)
+  }, 1000 * timeoutTime)
 
   return () => {
     clearTimeout(t)

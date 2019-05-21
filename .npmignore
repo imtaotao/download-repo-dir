@@ -13,6 +13,7 @@ dist/
 
 .gitignore
 .npmignore
+dev.js
 
 # Editor directories and files
 .idea
