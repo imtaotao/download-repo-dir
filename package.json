@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/imtaotao/download-repo-dir.git"
+    "url": "git+https://github.com/imtaotao/get-repo-dir.git"
   },
   "author": "imtaotao",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/imtaotao/download-repo-dir/issues"
+    "url": "https://github.com/imtaotao/get-repo-dir/issues"
   },
-  "homepage": "https://github.com/imtaotao/download-repo-dir#readme",
+  "homepage": "https://github.com/imtaotao/get-repo-dir#readme",
   "dependencies": {
     "axios": "^0.18.0",
     "chalk": "^2.4.2",
@@ -25,5 +25,12 @@
     "ora": "^3.4.0",
     "progress": "^2.0.3",
     "rimraf": "^2.6.3"
-  }
+  },
+  "keywords": [
+    "cli",
+    "files",
+    "github",
+    "download",
+    "download-dir"
+	]
 }

@@ -41,7 +41,7 @@ download 方法会开始下载指定的文件
 
 + 这个包会检测文件夹页面的 html 字符串，拿到需要下载的文件，所以，文件夹越多，越影响下载速度。如果需要下载完整的仓库，推荐使用 [download-git-repo](https://www.npmjs.com/package/download-git-repo) 这个包
 
-+ 如果下载的文件特别大，`options.timeout` 可能需要重置
++ 如果下载的文件特别大，`options.timeout` 可能需要重置为更长的时间
 
 
 [npm-image]: https://img.shields.io/npm/v/get-repo-dir.svg?style=flat-square
