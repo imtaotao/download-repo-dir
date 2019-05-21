@@ -1,5 +1,4 @@
 ## Description
-[![NPM version][npm-image]][npm-url]<br>
 想找一个可以下载 github 仓库中某一个文件夹中的文件的库，一直没有找到，所以只能自己写了，现在只能下载 github 上仓储的代码，抱歉
 
 ## Usage
@@ -23,7 +22,7 @@
 - `branch` - 要下载的仓库分支，默认是 master
 - `needSize` - 下载进度条是否检测下载文件包的大小，以供下载进度条显示，默认为 false
 - `timeout` - 指定超时时间，超时将会退出进程，单位为 s，默认是 10 * 60s
-- `hooks` - 下载过程的钩子，默认的钩子定义在[这里](https://github.com/imtaotao/download-repo-dir/blob/master/src/hooks.js)
+- `hooks` - 下载过程的钩子，默认的钩子定义在[这里](./src/hooks.js)
 
 ## API
 ### remove(url?: string)
@@ -42,7 +41,3 @@ download 方法会开始下载指定的文件
 + 这个包会检测文件夹页面的 html 字符串，拿到需要下载的文件，所以，文件夹越多，越影响下载速度。如果需要下载完整的仓库，推荐使用 [download-git-repo](https://www.npmjs.com/package/download-git-repo) 这个包
 
 + 如果下载的文件特别大，`options.timeout` 可能需要重置为更长的时间
-
-
-[npm-image]: https://img.shields.io/npm/v/get-repo-dir.svg?style=flat-square
-[npm-url]: https://www.npmjs.com/package/get-repo-dir
