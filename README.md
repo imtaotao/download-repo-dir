@@ -1,28 +1,47 @@
-## 简介
+## Description
 [![NPM version][npm-image]][npm-url]<br>
 想找一个可以下载 github 仓库中某一个文件夹中的文件的库，一直没有找到，所以只能自己写了，现在只能下载 github 上仓储的代码，抱歉
 
-## demo
+## Usage
 ```js
   const create = require('get-repo-dir')
 
-  // create(repoUrl, destPath, branch = 'master')
-  // branch 默认为 master，如果要下载其他分支的代码，可以选择第三个参数
-  const download = create('https://github.com/vuejs/vue.git', './dist')
-  
-  // 设置为 true，进度条以文件大小计算，否则以文件个数计算，默认以文件个数计算
-  // 设置为 true 时，会发生 head 请求，以得到文件大小，对于少量大文件可以设置为 true，得到更好的体验，大量的小文件则会很耗费时间，需要注意
-  download.needSize = true
+  const options = {
+    destPath: './dist',
+    dirPath: 'packages',
+    repo: 'https://github.com/facebook/react.git',
+  }
 
-  // 删除已经存在的文件夹（下载存放的目录），没有默认默认跳过
-  download.remove()
-  download.download('src/core').then(() => {
-    // console.log('complete')
-  })
+  // 每次在下载前清楚原有下载的文件
+  create(options).remove().download()
 ```
 
-## 小提示
-这个包会检测文件夹页面的 html 字符串，拿到需要下载的文件，所以，文件夹越多，越影响下载速度。如果需要下载完整的仓库，推荐使用 [download-git-repo](https://www.npmjs.com/package/download-git-repo) 这个包
+## Options
+- `repo` - 指定的仓库路径
+- `dirPath` - 指定仓库中的具体要下载的文件夹，根路径为当前仓库
+- `destPath` - 下载文件存放的路径
+- `branch` - 要下载的仓库分支，默认是 master
+- `needSize` - 下载进度条是否检测下载文件包的大小，以供下载进度条显示，默认为 false
+- `timeout` - 指定超时时间，超时将会退出进程，单位为 s，默认是 10 * 60s
+- `hooks` - 下载过程的钩子，默认的钩子定义在[这里](https://github.com/imtaotao/download-repo-dir/blob/master/src/hooks.js)
+
+## API
+### remove(url?: string)
+Example: `D.remove()`
+
+remove 方法会删除指定的文件夹，如果 url 未传入，则删除默认存放下载文件路径的文件夹
+
+### download()
+Example: `D.download()`
+
+download 方法会开始下载指定的文件
+
+## Tips
++ 对于 `options.needSize` 这个配置项，如果下载的是少量大文件，可以设置为 `true`，使进度条根据文件包大小展示，以获得更好的下载体验。如果下载的是大量的小文件，则推荐设置 `false`，不要因为过多的请求而浪费时间
+
++ 这个包会检测文件夹页面的 html 字符串，拿到需要下载的文件，所以，文件夹越多，越影响下载速度。如果需要下载完整的仓库，推荐使用 [download-git-repo](https://www.npmjs.com/package/download-git-repo) 这个包
+
++ 如果下载的文件特别大，`options.timeout` 可能需要重置
 
 
 [npm-image]: https://img.shields.io/npm/v/get-repo-dir.svg?style=flat-square

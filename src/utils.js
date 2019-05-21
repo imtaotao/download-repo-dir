@@ -65,20 +65,20 @@ exports.mkdir = function (dirPath) {
 }
 
 // 路径相关的信息
-exports.separateUrl = function ({repo, destUrl, branch, dirPath}) {
+exports.separateUrl = function ({repo, destPath, branch, dirPath}) {
   const config = url.parse(repo)
   const exname = path.extname(config.path)
 
   config.path = config.path.replace(exname, '')
   config.href = config.href.replace(exname, '')
 
-  if (!path.isAbsolute(destUrl)) {
+  if (!path.isAbsolute(destPath)) {
     const cwd = process.cwd()
-    destUrl = path.resolve(cwd, destUrl)
+    destPath = path.resolve(cwd, destPath)
   }
 
   const dest = v => {
-    return path.join(destUrl, v)
+    return path.join(destPath, v)
   }
 
   const dir = v => {
@@ -97,7 +97,7 @@ exports.separateUrl = function ({repo, destUrl, branch, dirPath}) {
     })
   }
 
-  return { dir, file, dest, dirPath, destUrl, branch }
+  return { dir, file, dest, dirPath, destPath, branch }
 }
 
 // 获得一个文件夹中的所有文件

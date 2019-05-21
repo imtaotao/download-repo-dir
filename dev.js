@@ -1,8 +1,9 @@
 const create = require('./src')
 
-create({
-  destUrl: './dist',
-  dirPath: 'web',
-  repo: 'https://github.com/imtaotao/rustle-music.git',
-})
-.remove().download()
+const options = {
+  destPath: './dist',
+  dirPath: 'packages',
+  repo: 'https://github.com/facebook/react.git',
+}
+
+create(options).remove().download()

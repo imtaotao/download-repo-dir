@@ -2,28 +2,28 @@ const fs = require('fs')
 const _ = require('./utils')
 const path = require('path')
 const chalk = require('chalk')
-const hooks = require('./hooks')
 const rm = require('rimraf').sync
 const download = require('download')
+const defaultHooks = require('./hooks')
 
 class DownLoadCore {
   constructor (options) {
-    const { repo, destUrl, branch, dirPath } = options
-    if (!repo || !dirPath || !destUrl || !branch) {
+    const { repo, destPath, branch, dirPath, hooks } = options
+    if (!repo || !dirPath || !destPath || !branch) {
       hooks.error(chalk.red('Lack of necessary parameters...'))
       return
     }
 
     this._isDownloading = false
-    this.needSize = options.needSize
-    this.timeout = options.needSize.timeout
     this.size = { total: 0, arrived: 0 }
     this.config = _.separateUrl(options)
-    _.extend(hooks, this)
+    this.needSize = options.needSize
+    this.timeout = options.needSize.timeout
+    _.extend(hooks || defaultHooks, this)
   }
 
   remove (url) {
-    url = url || this.config.destUrl
+    url = url || this.config.destPath
     if (fs.existsSync(url)) rm(url)
     return this
   }
@@ -62,8 +62,8 @@ class DownLoadCore {
     this._callHook('start')
     // 创建本地文件夹
     fileList.dirs.forEach(dirPath => _.mkdir(dirPath))
-    const asyncArray = fileList.files.map(({request, dest}) => {
-      return this._downFile(request, dest)
+    const asyncArray = fileList.files.map(({request, dest, path}) => {
+      return this._downFile(request, dest, path)
     })
 
     return Promise.all(asyncArray).then(() => {
@@ -108,6 +108,7 @@ class DownLoadCore {
         dirAsyncArr.push(pedding)
       } else {
         map.files.push({
+          path: currentFilePath,
           dest: this.config.dest(destinationPath),
           request: this.config.file(currentFilePath),
         })
@@ -118,12 +119,12 @@ class DownLoadCore {
   }
 
   // 下载文件
-  async _downFile (requestPath, destination) {
+  async _downFile (requestUrl, destination, requestPath) {
     return new Promise((resolve, reject) => {
       const writer = fs.createWriteStream(destination)
-      const reader = download(requestPath)
+      const reader = download(requestUrl)
       const errFn = error => {
-        this._callHook('error', `\n${chalk.yellow('error')}: ${chalk.red(error)} ${chalk.cyan('--->')} ${chalk.redBright(requestPath)}\n`)
+        this._callHook('error', `\n${chalk.yellow('error')}: ${chalk.red(error)} ${chalk.cyan('--->')} ${chalk.redBright(requestUrl)}\n`)
         reject()
       }
 
@@ -152,7 +153,7 @@ class DownLoadCore {
   }
 }
 
-module.exports = function (options) {
+module.exports = function (options = {}) {
   options.branch = options.branch || 'master'
   options.needSize = options.needSize || false
   options.timeout = typeof options.timeout === 'number'

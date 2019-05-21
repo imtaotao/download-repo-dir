@@ -57,9 +57,13 @@ module.exports = {
       ? `${_.formatSize(arrived)}/${_.formatSize(total)}`
       : `${arrived}/${total}`
 
+    const token2 = requestPath.length < 50
+      ? requestPath
+      : requestPath.slice(0, 47) + '...'
+
     this.progressBar.tick(tick, {
       token1: chalk.yellowBright(token1),
-      token2: chalk.greenBright(requestPath),
+      token2: chalk.greenBright(token2),
     })
   },
 
