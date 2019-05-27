@@ -17,8 +17,8 @@ class DownLoadCore {
     this._isDownloading = false
     this.size = { total: 0, arrived: 0 }
     this.config = _.separateUrl(options)
+    this.timeout = options.timeout
     this.needSize = options.needSize
-    this.timeout = options.needSize.timeout
     _.extend(hooks || defaultHooks, this)
   }
 
@@ -35,18 +35,19 @@ class DownLoadCore {
     
     this._isDownloading = true
     const errorCb = error => this._callHook('error', error)
-    const timeoutTime = typeof this.timeout === 'number'
-      ? this.timeout
-      : 10 * 60
-
-    let remove = _.timeout(timeoutTime, errorCb)
+    let remove = _.timeout(this.timeout, errorCb)
 
     this._callHook('ready')
     const fileList = await this._getFilesInfo(this.config.dirPath)
+    fileList.spinner.stop()
 
     if (this.needSize) {
+      // 获取整个包的大小
+      const process = (totalSize, filePath) => {
+        this._callHook('packageInfoProcess', totalSize, filePath)
+      }
       this._callHook('packageInfoStart')
-      const total = await _.totalSize(fileList.files, totalSize => this._callHook('packageInfoProcess', totalSize), errorCb)
+      const total = await _.totalSize(fileList.files, process, errorCb)
       this.size = { total, arrived: 0 }
       this._callHook('packageInfoEnd')
     } else {
@@ -57,7 +58,7 @@ class DownLoadCore {
     }
     
     remove()
-    remove = _.timeout(timeoutTime, errorCb)
+    remove = _.timeout(this.timeout, errorCb)
 
     this._callHook('start')
     // 创建本地文件夹
@@ -85,9 +86,24 @@ class DownLoadCore {
     }
   }
 
+  _getFilesMap () {
+    return {
+      dirs: [],
+      files: [],
+      spinner: _.spinner(chalk.blue(' ( 0 file )')),
+      setText (path) {
+        path = _.getNormalPath(path)
+        this.spinner.text = `${chalk.blue(` ( ${this.files.length} file )`)} ${chalk.greenBright(path)}`
+      }
+    }
+  }
+
   // 获取所有的文件路径
   async _getFilesInfo (requstPath, preDestinationPath = '', map) {
-    if (!map) map = { dirs: [], files: [] }
+    if (!map) {
+      map = this._getFilesMap()
+      map.spinner.start()
+    }
     if (!requstPath) return map
 
     const dirAsyncArr = []
@@ -97,6 +113,7 @@ class DownLoadCore {
       this._callHook('error', error)
     })
 
+    map.setText(requstPath)
     map.dirs.push(mkdirPath)
 
     for (const item of list) {
@@ -158,7 +175,7 @@ module.exports = function (options = {}) {
   options.needSize = options.needSize || false
   options.timeout = typeof options.timeout === 'number'
     ? options.timeout
-    : 10 * 60
+    : 5 * 60
 
   return new DownLoadCore(options)
 }

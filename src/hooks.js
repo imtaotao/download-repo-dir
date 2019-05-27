@@ -1,13 +1,11 @@
-const ora = require('ora')
 const _ = require('./utils')
 const chalk = require('chalk')
 const ProgressBar = require('progress')
-const cliSpinners  = require('cli-spinners')
 
 module.exports = {
   ready () {
     console.clear()
-    console.log(chalk.yellow('☕  Ready...'))
+    console.log(chalk.yellow('☕  Get files...'))
   },
 
   start () {
@@ -22,17 +20,13 @@ module.exports = {
   packageInfoStart () {
     console.clear()
     console.log(chalk.yellow('📦  Get package size...'));
-    this.spinner = ora({
-      indent: 2,
-      color: 'blue',
-      text: chalk.red('0.0KB'),
-      spinner: cliSpinners.dots,
-    })
+    this.spinner = _.spinner(chalk.blue(' 0.0KB'))
     this.spinner.start()
   },
 
-  packageInfoProcess (totalSize) {
-    this.spinner.text = chalk.red(`${_.formatSize(totalSize)}`)
+  packageInfoProcess (totalSize, path) {
+    path = _.getNormalPath(path)
+    this.spinner.text = ` ${chalk.blue(_.formatSize(totalSize))} ${chalk.greenBright(path)}`
   },
 
   packageInfoEnd () {
@@ -40,10 +34,10 @@ module.exports = {
     this.spinner = null
   },
 
-  progress (percent, tick, requestPath) {
+  progress (percent, tick, path) {
     const { total, arrived } = this.size
     if (!this.progressBar) {
-      const titleText = '✨  [:bar] :percent (:token1) :token2'
+      const titleText = '[:bar] :percent (:token1) :token2'
       this.progressBar = new ProgressBar(titleText, {
         total,
         width: 20,
@@ -57,23 +51,19 @@ module.exports = {
       ? `${_.formatSize(arrived)}/${_.formatSize(total)}`
       : `${arrived}/${total}`
 
-    const token2 = requestPath.length < 50
-      ? requestPath
-      : requestPath.slice(0, 47) + '...'
-
     this.progressBar.tick(tick, {
-      token1: chalk.yellowBright(token1),
-      token2: chalk.greenBright(token2),
+      token1: chalk.blue(token1),
+      token2: chalk.greenBright(_.getNormalPath(path)),
     })
   },
 
   complete () {
     console.clear()
-    console.log(chalk.green('🎉  Complete!\n'))
+    console.log(chalk.green('✨  Success!\n'))
   },
 
   error (errMsg) {
-    console.error(`❌  ${errMsg}`)
+    console.error(`\n❌  ${errMsg}`)
     process.exit(1)
   },
 }

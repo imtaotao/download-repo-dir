@@ -1,8 +1,10 @@
 const fs = require('fs')
+const ora = require('ora')
 const url = require('url')
 const path = require('path')
 const axios = require('axios')
 const chalk = require('chalk')
+const cliSpinners  = require('cli-spinners')
 const { parse } = require('node-html-parser')
 
 const DIREXPAND = 'file-list'
@@ -102,7 +104,7 @@ exports.separateUrl = function ({repo, destPath, branch, dirPath}) {
 
 // 获得一个文件夹中的所有文件
 exports.getDirItems = async function (url, branch, errorCb) {
-  console.log(`🕗  ${chalk.cyan('Get folder information: ')}`, chalk.greenBright(url))
+  // console.log(`🕗  ${chalk.cyan('Get folder information: ')}`, chalk.greenBright(url))
 
   try {
     const res = await axios.get(url)
@@ -121,23 +123,23 @@ exports.getDirItems = async function (url, branch, errorCb) {
 exports.totalSize = async function (files, fn, errorCb) {
   let totalSize = 0
 
-  const getFileSize = async filePath => {
+  const getFileSize = async ({path, request}) => {
     try {
-      const data = await axios.head(filePath)
+      const data = await axios.head(request)
       if (data && data.headers) {
         const size = Number(data.headers['content-length'])
         if (!isNaN(size)) {
           totalSize += size
-          fn(totalSize)
+          fn(totalSize, path)
         }
       }
     } catch (error) {
-      errorCb(`\n${chalk.red(error)} ${chalk.cyan('--->')} ${chalk.redBright(filePath)}\n`)
+      errorCb(`\n${chalk.red(error)} ${chalk.cyan('--->')} ${chalk.redBright(request)}\n`)
       process.exit(1)
     }
   }
 
-  await Promise.all(files.map(item => getFileSize(item.request)))
+  await Promise.all(files.map(getFileSize))
   return totalSize
 }
 
@@ -168,4 +170,19 @@ exports.extend = function (from, to) {
     to[key] = from[key]
   }
   return to
+}
+
+exports.spinner = function (text) {
+  return ora({
+    text,
+    indent: 2,
+    color: 'blue',
+    spinner: cliSpinners.dots,
+  })
+}
+
+exports.getNormalPath = function (path) {
+  return path.length < 50
+    ? path
+    : path.slice(0, 47) + '...'
 }
