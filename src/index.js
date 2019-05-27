@@ -8,7 +8,7 @@ const defaultHooks = require('./hooks')
 
 class DownLoadCore {
   constructor (options) {
-    const { repo, destPath, branch, dirPath, hooks } = options
+    const { repo, destPath, branch, dirPath, hooks = {} } = options
     if (!repo || !dirPath || !destPath || !branch) {
       defaultHooks.error(chalk.red('Lack of necessary parameters...'))
       return
@@ -19,7 +19,7 @@ class DownLoadCore {
     this.config = _.separateUrl(options)
     this.timeout = options.timeout
     this.needSize = options.needSize
-    _.extend(hooks || defaultHooks, this)
+    _.extend({ ...defaultHooks, ...hooks }, this)
   }
 
   remove (url) {

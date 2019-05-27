@@ -1,10 +1,16 @@
 const create = require('./src')
 
 const options = {
-  needSize: true,
+  // needSize: true,
   destPath: './dist',
-  dirPath: 'packages',
-  repo: 'https://github.com/facebook/react.git',
+  dirPath: '/',
+  repo: 'https://github.com/imtaotao/my-practice.git',
+  hooks: {
+    error (err) {
+      console.log(err)
+      this.remove()
+    },
+  }
 }
 
 create(options).remove().download()

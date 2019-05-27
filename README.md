@@ -22,7 +22,7 @@
 - `branch` - 要下载的仓库分支，默认是 master
 - `needSize` - 下载进度条是否检测下载文件包的大小，以供下载进度条显示，默认为 false
 - `timeout` - 指定超时时间，超时将会退出进程，单位为 s，默认是 5 * 60s
-- `hooks` - 下载过程的钩子，默认的钩子定义在[这里](./src/hooks.js)
+- `hooks` - 下载过程的钩子，钩子函数中的 `this` 指向当前创建的实例，默认的钩子定义在[这里](./src/hooks.js)
 
 ## API
 ### remove(url?: string)

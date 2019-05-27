@@ -80,7 +80,7 @@ exports.separateUrl = function ({repo, destPath, branch, dirPath}) {
   }
 
   const dest = v => {
-    return path.join(destPath, v)
+    return decodeURIComponent(path.join(destPath, v))
   }
 
   const dir = v => {
@@ -182,6 +182,7 @@ exports.spinner = function (text) {
 }
 
 exports.getNormalPath = function (path) {
+  path = decodeURIComponent(path)
   return path.length < 50
     ? path
     : path.slice(0, 47) + '...'
