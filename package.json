@@ -4,7 +4,8 @@
   "description": "A github repository folder download package",
   "main": "src/index.js",
   "scripts": {
-    "dev": "node dev.js"
+    "dev": "node dev.js",
+    "test": "node refactor/index.js"
   },
   "repository": {
     "type": "git",
