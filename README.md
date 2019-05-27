@@ -1,4 +1,5 @@
 ## Description
+[![NPM version][npm-image]][npm-url]<br>
 想找一个可以下载 github 仓库中某一个文件夹中的文件的库，一直没有找到，所以只能自己写了，现在只能下载 github 上仓储的代码，抱歉
 
 ## Usage
@@ -41,3 +42,7 @@ download 方法会开始下载指定的文件
 + 这个包会检测文件夹页面的 html 字符串，拿到需要下载的文件，所以，文件夹越多，越影响下载速度。如果需要下载完整的仓库，推荐使用 [download-git-repo](https://www.npmjs.com/package/download-git-repo) 这个包
 
 + 如果下载的文件特别大，`options.timeout` 可能需要重置为更长的时间
+
+
+[npm-url]: https://www.npmjs.com/package/get-repo-dir
+[npm-image]: https://img.shields.io/npm/v/get-repo-dir.svg
