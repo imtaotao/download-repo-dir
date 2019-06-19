@@ -1,6 +1,6 @@
 {
   "name": "get-repo-dir",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A github repository folder download package",
   "main": "src/index.js",
   "bin": {

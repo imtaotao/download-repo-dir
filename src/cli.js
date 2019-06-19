@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 const create = require('./index')
 const program = require('commander')
 const inquirer = require('inquirer')
