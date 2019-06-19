@@ -1,11 +1,15 @@
 {
   "name": "get-repo-dir",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A github repository folder download package",
   "main": "src/index.js",
+  "bin": {
+    "repo": "src/cli.js"
+  },
   "scripts": {
     "dev": "node dev.js",
-    "test": "node refactor/index.js"
+    "test": "node refactor/index.js",
+    "cli": "node src/cli.js"
   },
   "repository": {
     "type": "git",
@@ -21,7 +25,9 @@
     "axios": "^0.18.0",
     "chalk": "^2.4.2",
     "cli-spinners": "^2.1.0",
+    "commander": "^2.20.0",
     "download": "^7.1.0",
+    "inquirer": "^6.3.1",
     "node-html-parser": "^1.1.15",
     "ora": "^3.4.0",
     "progress": "^2.0.3",
@@ -33,5 +39,5 @@
     "github",
     "download",
     "download-dir"
-	]
+  ]
 }

@@ -173,7 +173,7 @@ class DownLoadCore {
 module.exports = function (options = {}) {
   options.branch = options.branch || 'master'
   options.needSize = options.needSize || false
-  options.timeout = typeof options.timeout === 'number'
+  options.timeout = typeof options.timeout === 'number' && !isNaN(options.timeout)
     ? options.timeout
     : 5 * 60
 

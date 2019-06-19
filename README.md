@@ -44,5 +44,24 @@ download 方法会开始下载指定的文件
 + 如果下载的文件特别大，`options.timeout` 可能需要重置为更长的时间
 
 
+## Cli
+```
+miniprogram download [options] [repoURL]
+```
+支持 options 如下：
+
+| option | 描述 |
+|---|---|
+| -d, --dirpath [dirpath] | 下载的仓库文件夹，默认为根路径 `/` |
+| -l, --local <localpath> | 本地下载的路径，默认为当前路径 `process.cwd()` |
+| -b, --branch [branch] | 下载的仓库分支，默认 `master` |
+| -s, --needsize | 是否需要获取包大小，默认 `false` |
+| -t, --timeout <timeout> | 下载的超时时间，默认 `5 * 60` s |
+
+demo
+```
+  repo download https://github.com/vuejs/vue.git -p ./src -d ./vue/src
+```
+
 [npm-url]: https://www.npmjs.com/package/get-repo-dir
 [npm-image]: https://img.shields.io/npm/v/get-repo-dir.svg
