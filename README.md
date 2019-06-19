@@ -63,7 +63,7 @@ repo download [options] [repoURL]
 
 ### demo
 ```
-  repo download https://github.com/vuejs/vue.git -p ./src -d ./vue/src
+  repo download https://github.com/vuejs/vue.git -d ./src -l ./vue
 ```
 
 [npm-url]: https://www.npmjs.com/package/get-repo-dir

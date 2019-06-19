@@ -42,7 +42,7 @@ const processOpts = (repoURL, {local, branch, needsize, timeout, dir}) => {
 program
   .command('download [repoURL]')
   .description('download repo folder')
-  .option('-s, --needSize', 'get package size')
+  .option('-s, --needsize', 'get package size')
   .option('-d, --dir [dirpath]', 'repo folder path')
   .option('-t, --timeout <timeout>', 'download timeout')
   .option('-l, --local <localpath>', 'download local path')
