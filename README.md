@@ -46,20 +46,18 @@ download 方法会开始下载指定的文件
 
 ## Cli
 ```
-  npm i get-repo-dir -g
+npm i get-repo-dir -g
 ```
 ```
 repo download [options] [repoURL]
 ```
 支持 options 如下：
 
-| option | 描述 |
-|---|---|
-| -d, --dirpath | 下载的仓库文件夹，默认为根路径 `/` |
-| -l, --local | 本地下载的路径，默认为当前路径 `process.cwd()` |
-| -b, --branch | 下载的仓库分支，默认 `master` |
-| -s, --needsize | 是否需要获取包大小，默认 `false` |
-| -t, --timeout | 下载的超时时间，默认 `5 * 60` s |
+- `-d, --dirpath` - 同 options.dirPath，默认为根路径 `/`
+- `-l, --local` - 同 options.destPath，默认为路径 `process.cwd()`
+- `-b, --branch` - 同 options.branch，默认 `master`
+- `-s, --needsize` - 同 options.needSize，默认 `false`
+- `-t, --timeout` - 同 options.timeout，默认 `5 * 60`s
 
 ### demo
 ```
