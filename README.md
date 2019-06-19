@@ -1,6 +1,7 @@
 ## Description
 [![NPM version][npm-image]][npm-url]<br>
-想找一个可以下载 github 仓库中某一个文件夹中的文件的库，一直没有找到，所以只能自己写了，现在只能下载 github 上仓储的代码，抱歉
+
+I want to find a libray that can download folder in the github repository, but I can't find, so, I only write by myself.
 
 ## Usage
 ```js
@@ -12,36 +13,36 @@
     repo: 'https://github.com/facebook/react.git',
   }
 
-  // 每次在下载前清楚原有下载的文件
+  // Clear old files before every download
   create(options).remove().download()
 ```
 
 ## Options
-- `repo` - 指定的仓库路径
-- `dirPath` - 指定仓库中的具体要下载的文件夹，根路径为当前仓库
-- `destPath` - 下载文件存放的路径
-- `branch` - 要下载的仓库分支，默认是 master
-- `needSize` - 下载进度条是否检测下载文件包的大小，以供下载进度条显示，默认为 false
-- `timeout` - 指定超时时间，超时将会退出进程，单位为 s，默认是 5 * 60s
-- `hooks` - 下载过程的钩子，钩子函数中的 `this` 指向当前创建的实例，默认的钩子定义在[这里](./src/hooks.js)
+- `repo` - The github repesitory url that needs to be downloaded.
+- `dirPath` - The folder url of need download, the root path is current repository.
+- `destPath` - Download the file storage path.
+- `branch` - Repository branch，default is `master`.
+- `needSize` - You whether need to detect the size of the file package, let the download progress bar use, default is `false`.
+- `timeout` - Specify the timeout period, timeout will exit the process, The unit is `s`, default is `5 * 60`s.
+- `hooks` - The hooks of the download process, the `this` in the hooks function points to the currently created instance, the default hooks is defined in [here](./src/hooks.js).
 
 ## API
 ### remove(url?: string)
 Example: `D.remove()`
 
-remove 方法会删除指定的文件夹，如果 url 未传入，则删除默认存放下载文件路径的文件夹
+The `remove` method will deletes the specified folder, and if the url is not passed, deletes the folder where the download file path is stored by default.
 
 ### download()
 Example: `D.download()`
 
-download 方法会开始下载指定的文件
+The `download` will download specify files
 
 ## Tips
-+ 对于 `options.needSize` 这个配置项，如果下载的是少量大文件，可以设置为 `true`，使进度条根据文件包大小展示，以获得更好的下载体验。如果下载的是大量的小文件，则推荐设置 `false`，不要因为过多的请求而浪费时间
++ For the `options.needSize` item, if you download a small number of large files, you can set it to `true` so that the progress bar is displayed according to the file package size for a better download experience. If you are downloading a large number of small files, it is recommended to set `false`, don't waste time because of too many requests.
 
-+ 这个包会检测文件夹页面的 html 字符串，拿到需要下载的文件，所以，文件夹越多，越影响下载速度。如果需要下载完整的仓库，推荐使用 [download-git-repo](https://www.npmjs.com/package/download-git-repo) 这个包
++ This package will detect the html string of the folder page and get the file to be downloaded. Therefore, the more folders, the more it affects the download speed. If you need to download the full repository, it is recommended to use the [download-git-repo](https://www.npmjs.com/package/download-git-repo) package.
 
-+ 如果下载的文件特别大，`options.timeout` 可能需要重置为更长的时间
++ If the downloaded file is particularly large, `options.timeout` may need to be reset to a longer time.
 
 
 ## Cli
@@ -51,13 +52,13 @@ npm i get-repo-dir -g
 ```
 repo download [options] [repoURL]
 ```
-支持 options 如下：
+Supported options:
 
-- `-d, --dirpath` - 同 options.dirPath，默认为根路径 `/`
-- `-l, --local` - 同 options.destPath，默认为路径 `process.cwd()`
-- `-b, --branch` - 同 options.branch，默认 `master`
-- `-s, --needsize` - 同 options.needSize，默认 `false`
-- `-t, --timeout` - 同 options.timeout，默认 `5 * 60`s
+- `-d, --dirpath` - Same as `options.dirPath`, default is `/`.
+- `-l, --local` - Same as `options.destPath`, default is `process.cwd()`.
+- `-b, --branch` - Same as `options.branch`, default is `master`.
+- `-s, --needsize` - Same as `options.needSize`, default is `false`.
+- `-t, --timeout` - Same as `options.timeout`, default is `5 * 60`s.
 
 ### demo
 ```
