@@ -3,6 +3,7 @@
 const create = require('./index')
 const program = require('commander')
 const inquirer = require('inquirer')
+const version = require('../package.json').version
 
 const warn = message => {
   throw new Error('Rustle Cli Warn: ' + message)
@@ -42,6 +43,7 @@ const processOpts = (repoURL, {local, branch, needsize, timeout, dir}) => {
 
 // 定义命令
 program
+  .version(version, '-v, --version')
   .command('download [repoURL]')
   .description('download repo folder')
   .option('-s, --needsize', 'get package size')
